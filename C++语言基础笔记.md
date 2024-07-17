@@ -37,8 +37,38 @@ shared_ptr<string> p4(new string("test"),Destruction()); // C++17以后支持，
 shared_ptr<string> p5 = make_shared<string>("test"); // make_shared效率更高，在动态内存中初始化对象并且返回一个指向该对象的shared_ptr对象，圆括号内的参数列表最多支持十个。
 std::cout<<"p1 use_count"<<p1.use_count()<<endl;
 std::cout<<"p2 use_count"<<p2.use_count()<<endl;
+// 释放
+p1 = nullptr;
+p2 = NULL;
+// 重置
+p1.reset(); //p1重置为空指针，所管理对象的引用计数减1
+p2.reset(p1); // p2所指对象计数减1，p2接管p1所指的对象，p1所管理对象引用计数减1
+p2.reset(p1,d); // p2接管p1的对象，并且使用d为删除器
+// 交换
+std::swap(p1,p2);
+p1.swap(p2);
 
 ```
-4. 仿函数-实际上是一个类，重载了对应操作符operator()，
+
+避免交叉使用智能指针，会造成内存泄漏
+
+4. weak_ptr-用来协助shared_ptr工作，只能从一个shared_ptr构造获得，没有重载*和->函数，但提供了一个lock函数来获得一个shared_ptr对象，使用完shared_ptr后记得置为NULL，它的析构和构造不会造成引用计数的增加或者减少。
+
+5. expired-该函数用于判断weak_ptr是否还有托管的指针，返回true就是没有托管的指针，相当于use_count()==0。
+6. 仿函数-实际上是一个类，重载了对应操作符operator()。本质是调用对象的函数，但是由于编译器优化可以不用写operator，简化看起来就像直接调用一个函数。
+```C++
+class A{
+	int operator()(int i)
+	{
+		std::cout<<i<<std::endl;
+		return i;
+	}
+}
+
+A a;
+a.operator()(1);
+a(1);
+```
+7. release取消托管但是不会析构托管的指针，需要管理员手动释放，reset
 		
 		
